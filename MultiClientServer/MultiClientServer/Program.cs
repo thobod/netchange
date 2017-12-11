@@ -13,11 +13,16 @@ namespace MultiClientServer
 
         static void Main(string[] args)
         {
-            Console.Write("Op welke poort ben ik server? ");
+            Console.WriteLine("Op welke poort ben ik server? en met welke poorten moet ik verbinden?");
+            string[] invoer = Console.ReadLine().Split(' ');
+            MijnPoort = int.Parse (invoer[0]);
 
-            MijnPoort = int.Parse(Console.ReadLine());
             new Server(MijnPoort);
-
+            for (int i = 1; i < invoer.Length; i++)
+            {
+                int p = int.Parse(invoer[i]);
+                Buren.Add(p, new Connection(p));
+            }
             Console.WriteLine("Typ [verbind poortnummer] om verbinding te maken, bijvoorbeeld: verbind 1100");
             Console.WriteLine("Typ [poortnummer bericht] om een bericht te sturen, bijvoorbeeld: 1100 hoi hoi");
 
