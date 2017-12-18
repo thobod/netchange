@@ -42,6 +42,14 @@ namespace netchangenew
             try
             {
                 while (true)
+                {
+                    string s = Read.ReadLine();
+                    if (s.StartsWith("Update"))
+                    {
+
+                    }
+                    
+                }
                     Console.WriteLine(Read.ReadLine());
             }
             catch { } // Verbinding is kennelijk verbroken

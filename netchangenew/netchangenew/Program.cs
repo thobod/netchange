@@ -64,10 +64,6 @@ namespace netchangenew
                 {
 
                 }
-                else if (input.StartsWith("Update"))
-                {
-
-                }
             }
         }
     }
