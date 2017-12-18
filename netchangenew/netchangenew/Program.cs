@@ -10,6 +10,7 @@ namespace netchangenew
     {
         static public int myPort;
         static public Dictionary<int, Connection> Neighbours;
+        static readonly public Dictionary<int, object> LockObjects;
 
         static void Main(string[] args)
         {
@@ -20,6 +21,7 @@ namespace netchangenew
             {
                 int port = int.Parse(args[i]);
                 Neighbours.Add(port, new Connection(port));
+                LockObjects.Add(port, new object());
             }
         }
     }

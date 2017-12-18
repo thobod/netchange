@@ -15,6 +15,27 @@ namespace netchangenew
         {
             TcpListener server = new TcpListener(IPAddress.Any, port);
             server.Start();
+
+            new Thread(() => AcceptLoop(server)).Start();
+        }
+
+        private void AcceptLoop(TcpListener handle)
+        {
+            while (true)
+            {
+                TcpClient client = handle.AcceptTcpClient();
+                StreamReader clientIn = new StreamReader(client.GetStream());
+                StreamWriter clientOut = new StreamWriter(client.GetStream());
+                clientOut.AutoFlush = true;
+
+                // De server weet niet wat de poort is van de client die verbinding maakt, de client geeft dus als onderdeel van het protocol als eerst een bericht met zijn poort
+                int zijnPoort = int.Parse(clientIn.ReadLine().Split()[1]);
+
+                Console.WriteLine("Client maakt verbinding: " + zijnPoort);
+
+                // Zet de nieuwe verbinding in de verbindingslijst
+                Program.Neighbours.Add(zijnPoort, new Connection(clientIn, clientOut));
+            }
         }
     }
 }
