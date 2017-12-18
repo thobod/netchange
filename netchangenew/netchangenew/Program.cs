@@ -11,6 +11,7 @@ namespace netchangenew
         static public int myPort;
         static public Dictionary<int, Connection> Neighbours;
         static readonly public Dictionary<int, object> LockObjects;
+        static public Dictionary<int,int[]> bestFirstStep;
 
         static void Main(string[] args)
         {
@@ -23,7 +24,7 @@ namespace netchangenew
                 Neighbours.Add(port, new Connection(port));
                 if(!LockObjects.ContainsKey(port)) LockObjects.Add(port, new object());
             }
-
+            
             while (true)
             {
                 string input = Console.ReadLine();
@@ -69,6 +70,20 @@ namespace netchangenew
 
                 }
             }
+        }
+        public static void initTable(int[] ports) //sets all the direct connections as fastest connection in firstbeststep
+        {
+            bestFirstStep = new Dictionary<int, int[]>();
+            for (int i = 0; i < ports.Length; i++)
+            {
+                int[] x = new int[2];
+                x[0] = ports[i];
+                bestFirstStep.Add(ports[i], x);
+            }
+        }
+        public static void addToTable(int port)
+        {
+
         }
     }
 }
