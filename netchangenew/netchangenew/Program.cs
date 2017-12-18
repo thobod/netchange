@@ -11,7 +11,7 @@ namespace netchangenew
         static public int myPort;
         static public Dictionary<int, Connection> Neighbours;
         static readonly public Dictionary<int, object> LockObjects;
-        static public Dictionary<int,int[]> bestFirstStep;
+        static public Dictionary<int,int[]> routingTable;
 
         static void Main(string[] args)
         {
@@ -67,19 +67,32 @@ namespace netchangenew
                 }
             }
         }
-        public static void initTable(int[] ports) //sets all the direct connections as fastest connection in firstbeststep
+        public static void initTable(int[] ports) //sets all the direct connections as fastest connection in routingtable.
         {
-            bestFirstStep = new Dictionary<int, int[]>();
+            routingTable = new Dictionary<int, int[]>();
             for (int i = 0; i < ports.Length; i++)
             {
                 int[] x = new int[2];
-                x[0] = ports[i];
-                bestFirstStep.Add(ports[i], x);
+                x[0] = 1; //distance to next node
+                x[1] = ports[i]; //first step to next node (also actually next node)
+                routingTable.Add(ports[i], x);
             }
         }
-        public static void addToTable(int port)
+        public static void addToTable(int port, int costToGetToPort, Dictionary<int, int[]> otherPortsTable)//gets the routingtable of another port, and adds these to the routingtable of this node(if they are faster than excisting nodes, or a route to this node doesnt yet exist)
         {
+            int[] otherPorts = otherPortsTable.Keys.ToArray();
 
+            for (int i = 0; i < otherPorts.Length; i++)
+            {
+                int[] tuple = otherPortsTable[otherPorts[i]];
+                if (!routingTable.ContainsKey(otherPorts[i]) || tuple[0] >= costToGetToPort + 1) //if its not in the table, or the known path is longer than the one we just found.
+                {
+                    int[] x = new int[2];
+                    x[0] = costToGetToPort + 1; //not really sure if this is right ???
+                    x[1] = port;
+                    routingTable.Add(otherPorts[i], x);
+                } 
+            }
         }
     }
 }
