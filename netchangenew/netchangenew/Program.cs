@@ -65,10 +65,6 @@ namespace netchangenew
                 {
 
                 }
-                else if (input.StartsWith("Update"))
-                {
-
-                }
             }
         }
         public static void initTable(int[] ports) //sets all the direct connections as fastest connection in firstbeststep
