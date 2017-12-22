@@ -88,7 +88,7 @@ namespace netchangenew
 
         public static void addToTable(int port, int costToGetToPort)//gets the routingtable of another port, and adds these to the routingtable of this node(if they are faster than excisting nodes, or a route to this node doesnt yet exist)
         {
-            Dictionary<int, int[]> otherPortsTable = new Dictionary<int, int[]>();
+            Dictionary<int, int[]> otherPortsTable = getOtherPortsTable(port);
             int[] otherPorts = otherPortsTable.Keys.ToArray();
 
             for (int i = 0; i < otherPorts.Length; i++)
@@ -102,6 +102,11 @@ namespace netchangenew
                     routingTable.Add(otherPorts[i], x);
                 } 
             }
+        }
+
+        public static Dictionary<int, int[]> getOtherPortsTable(int port)
+        {
+            //not sure how yet 
         }
 
         public static void printTable()
