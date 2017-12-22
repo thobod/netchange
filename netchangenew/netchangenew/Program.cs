@@ -106,6 +106,7 @@ namespace netchangenew
 
         public static Dictionary<int, int[]> getOtherPortsTable(int port)
         {
+            return new Dictionary<int, int[]>(); //zodat er geen errors zijn.
             //not sure how yet 
         }
 
