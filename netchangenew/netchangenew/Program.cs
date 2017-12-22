@@ -15,40 +15,44 @@ namespace netchangenew
 
         static void Main(string[] args)
         {
+            Neighbours = new Dictionary<int, Connection>();
+            args = Console.ReadLine().Split(' ');
             myPort = int.Parse(args[0]);
             Console.Title = "NetChange" + myPort;
             new Server(myPort);
+            int[] portsToConnect = new int[args.Length-1];
             for(int i = 1; i < args.Length; i++)
             {
+                portsToConnect[i - 1] = int.Parse(args[i]); 
                 int port = int.Parse(args[i]);
                 Neighbours.Add(port, new Connection(port));
-                if(!LockObjects.ContainsKey(port)) LockObjects.Add(port, new object());
+                //if(!LockObjects.ContainsKey(port)) LockObjects.Add(port, new object());
             }
-            
+            initTable(portsToConnect);
             while (true)
             {
                 string input = Console.ReadLine();
                 if (input.StartsWith("C"))
                 {
-                    int port = int.Parse(input.Split()[1]);
+                    int port = int.Parse(input.Split(' ')[1]);
                     if (Neighbours.ContainsKey(port))
                         Console.WriteLine("Hier is al verbinding naar!");
                     else
                     {
                         // Leg verbinding aan (als client)
                         Neighbours.Add(port, new Connection(port));
-                        if (!LockObjects.ContainsKey(port)) LockObjects.Add(port, new object());
+                        //if (!LockObjects.ContainsKey(port)) LockObjects.Add(port, new object());
                     }
                 }
                 else if(input.StartsWith("B"))
                 {
                     // Stuur berichtje
-                    string[] delen = input.Split(new char[] { ' ' }, 2);
-                    int port = int.Parse(delen[0]);
+                    string[] delen = input.Split(' ');
+                    int port = int.Parse(delen[1]);
                     if (!Neighbours.ContainsKey(port))
                         Console.WriteLine("Poort " + port + " is niet bekend");
                     else
-                        Neighbours[port].Write.WriteLine(myPort + ": " + delen[1]);
+                        Neighbours[port].Write.WriteLine(myPort + ": " + delen[2]);
                 }
                 else if (input.StartsWith("D"))
                 {
@@ -63,7 +67,7 @@ namespace netchangenew
                 }
                 else if (input.StartsWith("R"))
                 {
-
+                    printTable();
                 }
             }
         }
@@ -92,6 +96,25 @@ namespace netchangenew
                     x[1] = port;
                     routingTable.Add(otherPorts[i], x);
                 } 
+            }
+        }
+        public static void printTable()
+        {
+
+            int[,] routearray = new int[routingTable.Count,3];
+            int[] routeKeysArray = routingTable.Keys.ToArray();
+            int[][] routeValuesArray = routingTable.Values.ToArray();
+            for (int i = 0; i < routingTable.Count; i++)
+            {
+                routearray[i, 0] = routeKeysArray[i];
+                routearray[i, 1] = routeValuesArray[i][0];
+                routearray[i, 2] = routeValuesArray[i][1];
+            }
+            for (int i = 0; i < routingTable.Count; i++)
+            {
+                Console.Write(routearray[i,0] + " ");
+                Console.Write(routearray[i, 1] + " ");
+                Console.WriteLine(routearray[i, 2]);
             }
         }
     }
