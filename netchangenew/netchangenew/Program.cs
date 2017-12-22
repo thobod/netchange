@@ -41,6 +41,7 @@ namespace netchangenew
                     {
                         // Leg verbinding aan (als client)
                         Neighbours.Add(port, new Connection(port));
+                        addToTable(port, 1);
                         //if (!LockObjects.ContainsKey(port)) LockObjects.Add(port, new object());
                     }
                 }
@@ -74,6 +75,8 @@ namespace netchangenew
         public static void initTable(int[] ports) //sets all the direct connections as fastest connection in routingtable.
         {
             routingTable = new Dictionary<int, int[]>();
+            int[] myvalues = { 0, myPort };
+            routingTable.Add(myPort, myvalues);
             for (int i = 0; i < ports.Length; i++)
             {
                 int[] x = new int[2];
@@ -82,8 +85,10 @@ namespace netchangenew
                 routingTable.Add(ports[i], x);
             }
         }
-        public static void addToTable(int port, int costToGetToPort, Dictionary<int, int[]> otherPortsTable)//gets the routingtable of another port, and adds these to the routingtable of this node(if they are faster than excisting nodes, or a route to this node doesnt yet exist)
+
+        public static void addToTable(int port, int costToGetToPort)//gets the routingtable of another port, and adds these to the routingtable of this node(if they are faster than excisting nodes, or a route to this node doesnt yet exist)
         {
+            Dictionary<int, int[]> otherPortsTable = new Dictionary<int, int[]>();
             int[] otherPorts = otherPortsTable.Keys.ToArray();
 
             for (int i = 0; i < otherPorts.Length; i++)
@@ -98,23 +103,19 @@ namespace netchangenew
                 } 
             }
         }
+
         public static void printTable()
         {
-
-            int[,] routearray = new int[routingTable.Count,3];
             int[] routeKeysArray = routingTable.Keys.ToArray();
             int[][] routeValuesArray = routingTable.Values.ToArray();
             for (int i = 0; i < routingTable.Count; i++)
             {
-                routearray[i, 0] = routeKeysArray[i];
-                routearray[i, 1] = routeValuesArray[i][0];
-                routearray[i, 2] = routeValuesArray[i][1];
-            }
-            for (int i = 0; i < routingTable.Count; i++)
-            {
-                Console.Write(routearray[i,0] + " ");
-                Console.Write(routearray[i, 1] + " ");
-                Console.WriteLine(routearray[i, 2]);
+                Console.Write(routeKeysArray[i] + " ");
+                Console.Write(routeValuesArray[i][0] + " ");
+                if (routeValuesArray[i][1] == myPort)
+                    Console.WriteLine("local");
+                else
+                    Console.WriteLine(routeValuesArray[i][1]);
             }
         }
     }
