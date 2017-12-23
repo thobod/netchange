@@ -57,9 +57,10 @@ namespace netchangenew
                     }
                 }
             }
-            catch
+            catch(Exception e)
             {
                 Console.WriteLine("Woah shit broke");
+                Console.WriteLine(e);
             }
         }
     }
