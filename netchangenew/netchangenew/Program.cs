@@ -10,7 +10,7 @@ namespace netchangenew
     {
         static public int myPort;
         static public Dictionary<int, Connection> Neighbours;
-        static readonly public Dictionary<int, object> LockObjects;
+        static readonly public Dictionary<int, object> LockObjects; //deze moet nog aangemaakt worden maar is readonly
         static public Dictionary<int,int[]> routingTable;
 
         static void Main(string[] args)
@@ -90,7 +90,8 @@ namespace netchangenew
         {
             Dictionary<int, int[]> otherPortsTable = getOtherPortsTable(port);
             int[] otherPorts = otherPortsTable.Keys.ToArray();
-
+            int[] newconnection = { 1, port };
+            routingTable.Add(port, newconnection); //dit mag weg als routingtables hun eigen local host ook meegeven.
             for (int i = 0; i < otherPorts.Length; i++)
             {
                 int[] tuple = otherPortsTable[otherPorts[i]];
@@ -116,8 +117,7 @@ namespace netchangenew
             int[][] routeValuesArray = routingTable.Values.ToArray();
             for (int i = 0; i < routingTable.Count; i++)
             {
-                Console.Write(routeKeysArray[i] + " ");
-                Console.Write(routeValuesArray[i][0] + " ");
+                Console.Write(routeKeysArray[i] + " " + routeValuesArray[i][0] + " ");
                 if (routeValuesArray[i][1] == myPort)
                     Console.WriteLine("local");
                 else
