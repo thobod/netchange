@@ -51,15 +51,18 @@ namespace netchangenew
                         CreateConnection(port);
                     }
                 }
-                else if(input.StartsWith("B"))
+                else if (input.StartsWith("B"))
                 {
                     // Stuur berichtje
                     string[] delen = input.Split(' ');
                     ushort port = ushort.Parse(delen[1]);
-                    if (!Neighbours.ContainsKey(port))
+                    if (!routingTable.ContainsKey(port))
                         Console.WriteLine("Poort " + port + " is niet bekend");
                     else
-                        SendMessage(port, myPort + ": " + delen[2]);
+                    {
+                        forwardMessage(port, myPort + ": " + delen[2]);
+                    }
+
                 }
                 else if (input.StartsWith("D"))
                 {
@@ -88,6 +91,8 @@ namespace netchangenew
                 routingTable.Add(ports[i], new Tuple<ushort,ushort>(1, ports[i]));
             }
         }
+
+
 
         public static void addIncoming(ushort port)
         {
@@ -229,6 +234,17 @@ namespace netchangenew
         private static void SendMessage(ushort port, string message)
         {
             Neighbours[port].Write.WriteLine(message);
+        }
+        public static void forwardMessage(ushort destPort, string message)
+        {
+            if (Neighbours.ContainsKey(destPort))
+                Neighbours[destPort].Write.WriteLine(message);
+            else
+            {
+                ushort nextport = routingTable[destPort].Item2;
+                Neighbours[nextport].Write.WriteLine("Forward "+ destPort + " "+ message);
+            }
+
         }
 
         public static void printTable()

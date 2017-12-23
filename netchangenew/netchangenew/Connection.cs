@@ -48,6 +48,18 @@ namespace netchangenew
                         string[] ssplit = s.Split(' ');
                         Program.AcceptUpdate(clientport, ushort.Parse(ssplit[1]), ushort.Parse(ssplit[2]));
                     }
+                    else if (s.StartsWith("Forward"))
+                    {
+                        string[] splitstring = s.Split(' ');
+                        string[] message = new string[splitstring.Length - 2];
+                        for (int i = 2; i < splitstring.Length; i++)
+                        {
+                            message[i - 2] = splitstring[i];
+                        }
+
+                        Program.forwardMessage(ushort.Parse(splitstring[1]), string.Join("",message));
+                        //Console.WriteLine("ik ben nu hier");
+                    }
                     else
                     {
                         Console.WriteLine(s);
