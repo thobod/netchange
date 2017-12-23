@@ -42,13 +42,13 @@ namespace netchangenew
                     string s = Read.ReadLine();
                     if (s.StartsWith("MyDist"))
                     {
-                        Console.WriteLine("updating table with " + s);
+                        //Console.WriteLine("updating table with " + s);
                         string[] ssplit = s.Split(' ');
                         Program.AcceptUpdate(ushort.Parse(ssplit[1]), ushort.Parse(ssplit[2]), ushort.Parse(ssplit[3]));
                     }
                     else if (s.StartsWith("Message"))
                     {
-                        Console.WriteLine("Handel inkomend bericht af");
+                        //Console.WriteLine("Handel inkomend bericht af");
                         Program.HandleMessage(s);
                         //Console.WriteLine("ik ben nu hier");
                     }
@@ -60,8 +60,8 @@ namespace netchangenew
             }
             catch(Exception e)
             {
-                Console.WriteLine("Woah shit broke");
-                Console.WriteLine(e);
+                //Console.WriteLine("Woah shit broke");
+                //Console.WriteLine(e);
             }
         }
     }

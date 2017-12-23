@@ -73,7 +73,13 @@ namespace netchangenew
                         Console.WriteLine("Poort " + port + " is niet bekend");
                     else
                     {
+                        Console.WriteLine("Verbroken: " + port);
                         Neighbours.Remove(port);
+                        n_distanceTable.Remove(port);
+                        foreach(KeyValuePair<ushort, Tuple<ushort, ushort>> entry in routingTable)
+                        {
+                            if (entry.Value.Item2 == port) Recompute(entry.Key);
+                        }
                     }
                 }
                 else if (input.StartsWith("R"))
@@ -224,7 +230,8 @@ namespace netchangenew
                 //Informs each neighbour of their updated distance, if the distance changed
                 if(d != oldD && d < 20)
                 {
-                    foreach(KeyValuePair<ushort, Connection> neighbour in Neighbours)
+                    Console.WriteLine("Afstand naar " + port + " is nu " + d + " via " + routingTable[port].Item2);
+                    foreach (KeyValuePair<ushort, Connection> neighbour in Neighbours)
                     {
                         SendMessage(neighbour.Key, "MyDist " + myPort + " " + port + " " + d);
                     }
@@ -248,8 +255,8 @@ namespace netchangenew
             {
                 lock (LockObjects[neighbour.Key])
                 {
-                    Console.WriteLine("looking up shortest path to " + destinationPort + " with n-table");
-                    PrintNDisTable();
+                    //Console.WriteLine("looking up shortest path to " + destinationPort + " with n-table");
+                    //PrintNDisTable();
                     if (!n_distanceTable[neighbour.Key].ContainsKey(destinationPort))
                     {
                         n_distanceTable[neighbour.Key].Add(destinationPort, (ushort)(dist + 1));
@@ -273,7 +280,7 @@ namespace netchangenew
         private static void SendMessage(ushort port, string message)
         {
             Neighbours[port].Write.WriteLine(message);
-            Console.WriteLine("stuur berichtje " + message + " naar " + port);
+           // Console.WriteLine("stuur berichtje " + message + " naar " + port);
         }
 
         public static void HandleMessage(string message)
