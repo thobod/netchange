@@ -42,6 +42,7 @@ namespace netchangenew
                     string s = Read.ReadLine();
                     if (s.StartsWith("MyDist"))
                     {
+                        Console.WriteLine("updating table with " + s);
                         string[] ssplit = s.Split(' ');
                         Program.AcceptUpdate(ushort.Parse(ssplit[1]), ushort.Parse(ssplit[2]), ushort.Parse(ssplit[3]));
                     }

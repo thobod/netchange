@@ -33,6 +33,7 @@ namespace netchangenew
             //Instantiates the connections
             for (int i = 0; i < portsToConnect.Length; i++)
             {
+                if (myPort > portsToConnect[i]) continue;
                 CreateConnection(portsToConnect[i]);
             }
 
@@ -79,6 +80,10 @@ namespace netchangenew
                 {
                     printTable();
                 }
+                else if (input.StartsWith("N"))
+                {
+                    PrintNDisTable();
+                }
             }
         }
         public static void initTable(ushort[] ports) //sets all the direct connections as fastest connection in routingtable.
@@ -108,8 +113,11 @@ namespace netchangenew
                 if (Neighbours.ContainsKey(port)) return;
                 if (!n_distanceTable.ContainsKey(port)) n_distanceTable.Add(port, new Dictionary<ushort, ushort>());
                 n_distanceTable[port].Add(myPort, 1);
+                n_distanceTable[port].Add(port, 0);
+                if (!routingTable.ContainsKey(port)) routingTable.Add(port, new Tuple<ushort, ushort>(1, port));
+                routingTable[port] = new Tuple<ushort, ushort>(1, port);
 
-                bool p = true;
+                    bool p = true;
                 while (p)
                 {
                     try
@@ -148,6 +156,7 @@ namespace netchangenew
                 Console.WriteLine("Client maakt verbinding: " + port);
                 if (!n_distanceTable.ContainsKey(port)) n_distanceTable.Add(port, new Dictionary<ushort, ushort>());
                 n_distanceTable[port].Add(myPort, 1);
+                n_distanceTable[port].Add(port, 0);
                 //Update your connected client about your routing table
                 foreach (KeyValuePair<ushort, Tuple<ushort, ushort>> distances in routingTable)
                 {
@@ -234,10 +243,15 @@ namespace netchangenew
             return new Tuple<ushort, ushort>(dist, port);
         }
 
+        private static void AddToNDistanceTable(ushort originPort, ushort destinationPort, ushort distance)
+        {
+
+        }
+
         private static void SendMessage(ushort port, string message)
         {
             Neighbours[port].Write.WriteLine(message);
-            Console.WriteLine("stuur berichtje naar " + port);
+            Console.WriteLine("stuur berichtje " + message + " naar " + port);
         }
 
         public static void HandleMessage(string message)
@@ -258,7 +272,7 @@ namespace netchangenew
                 else
                 {
                     SendMessage(routingTable[targetPort].Item2, message);
-                    Console.WriteLine("Bericht voor " + targetPort + " wordt doorgestuurd naar " + routingTable[targetPort]);
+                    Console.WriteLine("Bericht voor " + targetPort + " wordt doorgestuurd naar " + routingTable[targetPort].Item2);
                 }
             }
         }
@@ -276,6 +290,19 @@ namespace netchangenew
                     Console.WriteLine("undef");
                 else
                     Console.WriteLine(routingTable[routeKeysArray[i]].Item2);
+            }
+        }
+
+        public static void PrintNDisTable()
+        {
+            ushort[] keyArray1 = n_distanceTable.Keys.ToArray();
+            for(int i = 0; i < n_distanceTable.Count; i++)
+            {
+                ushort[] keyArray2 = n_distanceTable[keyArray1[i]].Keys.ToArray();
+                for(int j = 0; j < n_distanceTable[keyArray1[i]].Count; j++)
+                {
+                    Console.WriteLine(keyArray1[i] + " to " + keyArray2[j] + " is " + n_distanceTable[keyArray1[i]][keyArray2[j]]);
+                }
             }
         }
     }
