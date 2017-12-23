@@ -13,10 +13,12 @@ namespace netchangenew
     {
         public StreamReader Read;
         public StreamWriter Write;
+        private ushort clientport;
 
-        public Connection(int port)
+        public Connection(ushort port)
         {
             TcpClient client = new TcpClient("localhost", port);
+            clientport = port;
 
             Read = new StreamReader(client.GetStream());
             Write = new StreamWriter(client.GetStream());
@@ -50,7 +52,10 @@ namespace netchangenew
                     }
                     else if (s.StartsWith("MyDist"))
                     {
-
+                        string[] ssplit = s.Split(' ');
+                        ushort destPort = ushort.Parse(ssplit[2]);
+                        Program.n_distanceTable[clientport][destPort] = ushort.Parse(ssplit[1]);
+                        Program.Recompute(destPort);
                     }
                     else
                     {
