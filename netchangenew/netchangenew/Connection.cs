@@ -48,6 +48,10 @@ namespace netchangenew
                     {
 
                     }
+                    else if (s.StartsWith("MyDist"))
+                    {
+
+                    }
                     else
                     {
                         Console.WriteLine(Read.ReadLine());

@@ -8,48 +8,52 @@ namespace netchangenew
 {
     class Program
     {
-        static public int myPort;
-        static public Dictionary<int, Connection> Neighbours;
-        static readonly public Dictionary<int, object> LockObjects; //deze moet nog aangemaakt worden maar is readonly
-        static public Dictionary<int,int[]> routingTable;
+        static public ushort myPort;
+        static public Dictionary<ushort, Connection> Neighbours;
+        static readonly public Dictionary<int, object> LockObjects = new Dictionary<int, object>(); //deze moet nog aangemaakt worden maar is readonly
+        static public Dictionary<ushort, Tuple<ushort, ushort>> routingTable; //Routing table, key being the destination port, value being a tuple of <distance, Neighbour closest to destination port>
+        static public Dictionary<ushort, Dictionary<ushort, ushort>> n_distanceTable; //A table that indexes with a neighbour port, whose value is a dictionary which indexes with the destination port, value being estimated distance
 
         static void Main(string[] args)
         {
-            Neighbours = new Dictionary<int, Connection>();
+            Neighbours = new Dictionary<ushort, Connection>();
             args = Console.ReadLine().Split(' ');
-            myPort = int.Parse(args[0]);
+            myPort = ushort.Parse(args[0]);
             Console.Title = "NetChange" + myPort;
             new Server(myPort);
-            int[] portsToConnect = new int[args.Length-1];
-            for(int i = 1; i < args.Length; i++)
-            {
-                portsToConnect[i - 1] = int.Parse(args[i]); 
-                int port = int.Parse(args[i]);
-                Neighbours.Add(port, new Connection(port));
-                //if(!LockObjects.ContainsKey(port)) LockObjects.Add(port, new object());
-            }
+            ushort[] portsToConnect = new ushort[args.Length-1];
+            Array.Copy(args, portsToConnect, 1);
+
+            //Init the starting routing table
             initTable(portsToConnect);
+
+            //Instantiates the connections
+            for (int i = 1; i < args.Length; i++)
+            {
+                ushort port = ushort.Parse(args[i]);
+                CreateConnection(port);
+            }
+
+
             while (true)
             {
                 string input = Console.ReadLine();
                 if (input.StartsWith("C"))
                 {
-                    int port = int.Parse(input.Split(' ')[1]);
+                    ushort port = ushort.Parse(input.Split(' ')[1]);
                     if (Neighbours.ContainsKey(port))
                         Console.WriteLine("Hier is al verbinding naar!");
                     else
                     {
                         // Leg verbinding aan (als client)
-                        Neighbours.Add(port, new Connection(port));
-                        addToTable(port, 1);
-                        //if (!LockObjects.ContainsKey(port)) LockObjects.Add(port, new object());
+                        CreateConnection(port);
                     }
                 }
                 else if(input.StartsWith("B"))
                 {
                     // Stuur berichtje
                     string[] delen = input.Split(' ');
-                    int port = int.Parse(delen[1]);
+                    ushort port = ushort.Parse(delen[1]);
                     if (!Neighbours.ContainsKey(port))
                         Console.WriteLine("Poort " + port + " is niet bekend");
                     else
@@ -58,7 +62,7 @@ namespace netchangenew
                 else if (input.StartsWith("D"))
                 {
                     //Verwijder port
-                    int port = int.Parse(input.Split()[1]);
+                    ushort port = ushort.Parse(input.Split()[1]);
                     if (!Neighbours.ContainsKey(port))
                         Console.WriteLine("Poort " + port + " is niet bekend");
                     else
@@ -72,36 +76,43 @@ namespace netchangenew
                 }
             }
         }
-        public static void initTable(int[] ports) //sets all the direct connections as fastest connection in routingtable.
+        public static void initTable(ushort[] ports) //sets all the direct connections as fastest connection in routingtable.
         {
-            routingTable = new Dictionary<int, int[]>();
-            int[] myvalues = { 0, myPort };
-            routingTable.Add(myPort, myvalues);
+            routingTable = new Dictionary<ushort, Tuple<ushort, ushort>>();
+            routingTable.Add(myPort, new Tuple<ushort, ushort>(0, myPort) );
             for (int i = 0; i < ports.Length; i++)
             {
-                int[] x = new int[2];
-                x[0] = 1; //distance to next node
-                x[1] = ports[i]; //first step to next node (also actually next node)
-                routingTable.Add(ports[i], x);
+                //Add port to routing table
+                routingTable.Add(ports[i], new Tuple<ushort,ushort>(1, ports[i]));
             }
         }
 
-        public static void addToTable(int port, int costToGetToPort)//gets the routingtable of another port, and adds these to the routingtable of this node(if they are faster than excisting nodes, or a route to this node doesnt yet exist)
+        public static void CreateConnection(ushort port)
         {
-            Dictionary<int, int[]> otherPortsTable = getOtherPortsTable(port);
-            int[] otherPorts = otherPortsTable.Keys.ToArray();
-            int[] newconnection = { 1, port };
-            routingTable.Add(port, newconnection); //dit mag weg als routingtables hun eigen local host ook meegeven.
-            for (int i = 0; i < otherPorts.Length; i++)
+            foreach(KeyValuePair<ushort, Connection> neighbour in Neighbours)
             {
-                int[] tuple = otherPortsTable[otherPorts[i]];
-                if (!routingTable.ContainsKey(otherPorts[i]) || tuple[0] >= costToGetToPort + 1) //if its not in the table, or the known path is longer than the one we just found.
+                neighbour.Value.Write.WriteLine("MyDist " + port + " 1");
+            }
+            if (!LockObjects.ContainsKey(port)) LockObjects.Add(port, new object());
+
+            bool p = true;
+            while(p)
+            {
+                try
                 {
-                    int[] x = new int[2];
-                    x[0] = costToGetToPort + 1; //not really sure if this is right ???
-                    x[1] = port;
-                    routingTable.Add(otherPorts[i], x);
-                } 
+                    Neighbours.Add(port, new Connection(port));
+                    p = false;
+                }
+                catch
+                {
+                    System.Threading.Thread.Sleep(200);
+                }
+            }
+
+
+            foreach(KeyValuePair<ushort, Tuple<ushort, ushort>> distances in routingTable)
+            {
+                Neighbours[port].Write.WriteLine("MyDist " + distances.Key + " " + distances.Value.Item1);
             }
         }
 
@@ -111,17 +122,63 @@ namespace netchangenew
             //not sure how yet 
         }
 
+        public void Recompute(ushort port)
+        {
+            //Lock all things to do with current destination
+            lock (LockObjects[port])
+            {
+                //If port is current port, do nothing.
+                if (port == myPort)
+                {
+                    return;
+                }
+                //Else compute shortest hop
+                else
+                {
+                    Tuple<ushort, ushort> closest = ShortestPathNeighbour(port);
+                    ushort d = (ushort)(1 + closest.Item1);
+                    //Checks if d exceeds node count, which would mean the node is porbably inaccessible
+                    if (d < 20)
+                    {
+                        routingTable[port] = new Tuple<ushort, ushort>(d, closest.Item2);
+                    }
+                    else
+                    {
+                        //Node is inaccesible: make distance ushort.maxvalue, destination port 0 (which doesn't exist)
+                        routingTable[port] = new Tuple<ushort, ushort>(ushort.MaxValue, 0);
+                        Console.WriteLine("Onbereikbaar: " + port);
+                    }
+                }
+            }
+        }
+
+        //Returns a tuple of the distance + the neighbour thats on the shortest path
+        private Tuple<ushort,ushort> ShortestPathNeighbour(ushort destinationPort)
+        {
+            ushort dist = ushort.MaxValue;
+            ushort port = 0;
+            foreach(KeyValuePair<ushort, Connection> neighbour in Neighbours)
+            {
+                ushort tempDist = n_distanceTable[neighbour.Key][destinationPort];
+                if (tempDist < dist)
+                {
+                    dist = tempDist;
+                    port = neighbour.Key;
+                } 
+            }
+            return new Tuple<ushort, ushort>(dist, port);
+        }
+
         public static void printTable()
         {
-            int[] routeKeysArray = routingTable.Keys.ToArray();
-            int[][] routeValuesArray = routingTable.Values.ToArray();
+            ushort[] routeKeysArray = routingTable.Keys.ToArray();
             for (int i = 0; i < routingTable.Count; i++)
             {
-                Console.Write(routeKeysArray[i] + " " + routeValuesArray[i][0] + " ");
-                if (routeValuesArray[i][1] == myPort)
+                Console.Write(routeKeysArray[i] + " " + routingTable[routeKeysArray[i]].Item1 + " ");
+                if (routingTable[routeKeysArray[i]].Item2 == myPort)
                     Console.WriteLine("local");
                 else
-                    Console.WriteLine(routeValuesArray[i][1]);
+                    Console.WriteLine(routingTable[routeKeysArray[i]].Item2);
             }
         }
     }
