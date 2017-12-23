@@ -22,13 +22,16 @@ namespace netchangenew
             Console.Title = "NetChange" + myPort;
             new Server(myPort);
             ushort[] portsToConnect = new ushort[args.Length-1];
-            Array.Copy(args, portsToConnect, 1);
+            for (int i = 1; i < args.Length; i++)
+            {
+                portsToConnect[i - 1] = ushort.Parse(args[i]);
+            }
 
             //Init the starting routing table
             initTable(portsToConnect);
 
             //Instantiates the connections
-            for (int i = 1; i < args.Length; i++)
+            for (int i = 0; i < portsToConnect.Length; i++)
             {
                 ushort port = ushort.Parse(args[i]);
                 CreateConnection(port);
@@ -122,7 +125,7 @@ namespace netchangenew
             //not sure how yet 
         }
 
-        public void Recompute(ushort port)
+        public static void Recompute(ushort port)
         {
             //Lock all things to do with current destination
             lock (LockObjects[port])
@@ -151,6 +154,8 @@ namespace netchangenew
                         Console.WriteLine("Onbereikbaar: " + port);
                     }
                 }
+
+                //Informs each neighbour of their updated distance, if the distance changed
                 if(d != oldD)
                 {
                     foreach(KeyValuePair<ushort, Connection> neighbour in Neighbours)
@@ -162,7 +167,7 @@ namespace netchangenew
         }
 
         //Returns a tuple of the distance + the neighbour thats on the shortest path
-        private Tuple<ushort,ushort> ShortestPathNeighbour(ushort destinationPort)
+        private static Tuple<ushort,ushort> ShortestPathNeighbour(ushort destinationPort)
         {
             ushort dist = ushort.MaxValue;
             ushort port = 0;
