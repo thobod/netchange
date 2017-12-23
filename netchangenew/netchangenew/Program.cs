@@ -57,7 +57,7 @@ namespace netchangenew
                     if (!Neighbours.ContainsKey(port))
                         Console.WriteLine("Poort " + port + " is niet bekend");
                     else
-                        Neighbours[port].Write.WriteLine(myPort + ": " + delen[2]);
+                        SendMessage(port, myPort + ": " + delen[2]);
                 }
                 else if (input.StartsWith("D"))
                 {
@@ -91,7 +91,7 @@ namespace netchangenew
         {
             foreach(KeyValuePair<ushort, Connection> neighbour in Neighbours)
             {
-                neighbour.Value.Write.WriteLine("MyDist " + port + " 1");
+                SendMessage(neighbour.Key, "MyDist " + port + " 1");
             }
             if (!LockObjects.ContainsKey(port)) LockObjects.Add(port, new object());
 
@@ -112,7 +112,7 @@ namespace netchangenew
 
             foreach(KeyValuePair<ushort, Tuple<ushort, ushort>> distances in routingTable)
             {
-                Neighbours[port].Write.WriteLine("MyDist " + distances.Key + " " + distances.Value.Item1);
+                SendMessage(port, "MyDist " + distances.Key + " " + distances.Value.Item1);
             }
         }
 
@@ -127,6 +127,8 @@ namespace netchangenew
             //Lock all things to do with current destination
             lock (LockObjects[port])
             {
+                ushort oldD = routingTable[port].Item1;
+                ushort d;
                 //If port is current port, do nothing.
                 if (port == myPort)
                 {
@@ -136,7 +138,7 @@ namespace netchangenew
                 else
                 {
                     Tuple<ushort, ushort> closest = ShortestPathNeighbour(port);
-                    ushort d = (ushort)(1 + closest.Item1);
+                    d = (ushort)(1 + closest.Item1);
                     //Checks if d exceeds node count, which would mean the node is porbably inaccessible
                     if (d < 20)
                     {
@@ -147,6 +149,13 @@ namespace netchangenew
                         //Node is inaccesible: make distance ushort.maxvalue, destination port 0 (which doesn't exist)
                         routingTable[port] = new Tuple<ushort, ushort>(ushort.MaxValue, 0);
                         Console.WriteLine("Onbereikbaar: " + port);
+                    }
+                }
+                if(d != oldD)
+                {
+                    foreach(KeyValuePair<ushort, Connection> neighbour in Neighbours)
+                    {
+                        SendMessage(neighbour.Key, "MyDist " + d + " " + port);
                     }
                 }
             }
@@ -167,6 +176,11 @@ namespace netchangenew
                 } 
             }
             return new Tuple<ushort, ushort>(dist, port);
+        }
+
+        private static void SendMessage(ushort port, string message)
+        {
+            Neighbours[port].Write.WriteLine(message);
         }
 
         public static void printTable()
