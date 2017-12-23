@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.IO;
 using System.Text;
 using System.Threading.Tasks;
 
@@ -12,7 +13,7 @@ namespace netchangenew
         static public Dictionary<ushort, Connection> Neighbours;
         static readonly public Dictionary<int, object> LockObjects = new Dictionary<int, object>(); //deze moet nog aangemaakt worden maar is readonly
         static public Dictionary<ushort, Tuple<ushort, ushort>> routingTable; //Routing table, key being the destination port, value being a tuple of <distance, Neighbour closest to destination port>
-        static public Dictionary<ushort, Dictionary<ushort, ushort>> n_distanceTable; //A table that indexes with a neighbour port, whose value is a dictionary which indexes with the destination port, value being estimated distance
+        static public Dictionary<ushort, Dictionary<ushort, ushort>> n_distanceTable = new Dictionary<ushort, Dictionary<ushort, ushort>>(); //A table that indexes with a neighbour port, whose value is a dictionary which indexes with the destination port, value being estimated distance
 
         static void Main(string[] args)
         {
@@ -90,32 +91,67 @@ namespace netchangenew
 
         public static void CreateConnection(ushort port)
         {
-            foreach(KeyValuePair<ushort, Connection> neighbour in Neighbours)
-            {
-                SendMessage(neighbour.Key, "MyDist " + port + " 1");
-            }
             if (!LockObjects.ContainsKey(port)) LockObjects.Add(port, new object());
-
-            bool p = true;
-            while(p)
+            lock (LockObjects[port])
             {
-                try
+                if (!n_distanceTable.ContainsKey(port)) n_distanceTable.Add(port, new Dictionary<ushort, ushort>());
+                n_distanceTable[port].Add(myPort, 1);
+
+                bool p = true;
+                while (p)
                 {
-                    Neighbours.Add(port, new Connection(port));
-                    Console.WriteLine("Verbonden: " + port);
-                    p = false;
+                    try
+                    {
+                        Neighbours.Add(port, new Connection(port));
+                        Console.WriteLine("Verbonden: " + port);
+                        p = false;
+                    }
+                    catch
+                    {
+                        System.Threading.Thread.Sleep(200);
+                    }
+
                 }
-                catch
+
+                //Update your connected server about your routing table
+                foreach (KeyValuePair<ushort, Tuple<ushort, ushort>> distances in routingTable)
                 {
-                    System.Threading.Thread.Sleep(200);
+                    SendMessage(port, "MyDist " + distances.Key + " " + distances.Value.Item1);
+                }
+
+                foreach (KeyValuePair<ushort, Connection> neighbour in Neighbours)
+                {
+                    SendMessage(neighbour.Key, "MyDist " + port + " 1");
                 }
             }
+        }
 
-
-            foreach(KeyValuePair<ushort, Tuple<ushort, ushort>> distances in routingTable)
+        public static void AcceptConnection(ushort port, StreamReader clientIN, StreamWriter clientOUT)
+        {
+            if (!LockObjects.ContainsKey(port)) LockObjects[port] = new object();
+            lock (LockObjects[port])
             {
-                SendMessage(port, "MyDist " + distances.Key + " " + distances.Value.Item1);
+                Neighbours.Add(port, new Connection(port, clientIN, clientOUT));
+                if (!n_distanceTable.ContainsKey(port)) n_distanceTable.Add(port, new Dictionary<ushort, ushort>());
+                n_distanceTable[port].Add(myPort, 1);
+                //Update your connected client about your routing table
+                foreach (KeyValuePair<ushort, Tuple<ushort, ushort>> distances in routingTable)
+                {
+                    SendMessage(port, "MyDist " + distances.Key + " " + distances.Value.Item1);
+                }
             }
+        }
+
+        public static void AcceptUpdate(ushort clientport, ushort destPort, ushort distance)
+        {
+            if (!LockObjects.ContainsKey(clientport)) LockObjects[clientport] = new object();
+            lock (LockObjects[clientport])
+            {
+                if (!n_distanceTable.ContainsKey(clientport)) n_distanceTable.Add(clientport, new Dictionary<ushort, ushort>());
+                if (!n_distanceTable[clientport].ContainsKey(destPort)) n_distanceTable[clientport].Add(destPort, distance);
+                else n_distanceTable[clientport][destPort] = distance;
+            }
+            Recompute(destPort);
         }
 
         public static Dictionary<int, int[]> getOtherPortsTable(int port)
@@ -126,9 +162,11 @@ namespace netchangenew
 
         public static void Recompute(ushort port)
         {
+            if (!LockObjects.ContainsKey(port)) LockObjects[port] = new object();
             //Lock all things to do with current destination
             lock (LockObjects[port])
             {
+                if (!routingTable.ContainsKey(port)) routingTable.Add(port, new Tuple<ushort,ushort>(ushort.MaxValue, myPort));
                 ushort oldD = routingTable[port].Item1;
                 ushort d;
                 //If port is current port, do nothing.
@@ -159,7 +197,7 @@ namespace netchangenew
                 {
                     foreach(KeyValuePair<ushort, Connection> neighbour in Neighbours)
                     {
-                        SendMessage(neighbour.Key, "MyDist " + d + " " + port);
+                        SendMessage(neighbour.Key, "MyDist " + port + " " + d);
                     }
                 }
             }
@@ -195,6 +233,8 @@ namespace netchangenew
                 Console.Write(routeKeysArray[i] + " " + routingTable[routeKeysArray[i]].Item1 + " ");
                 if (routingTable[routeKeysArray[i]].Item2 == myPort)
                     Console.WriteLine("local");
+                else if (routingTable[routeKeysArray[i]].Item2 == 0)
+                    Console.WriteLine("undef");
                 else
                     Console.WriteLine(routingTable[routeKeysArray[i]].Item2);
             }

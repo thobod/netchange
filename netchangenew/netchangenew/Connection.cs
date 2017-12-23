@@ -19,20 +19,17 @@ namespace netchangenew
         {
             TcpClient client = new TcpClient("localhost", port);
             clientport = port;
-
             Read = new StreamReader(client.GetStream());
             Write = new StreamWriter(client.GetStream());
             Write.AutoFlush = true;
-
-            // De server kan niet zien van welke poort wij client zijn, dit moeten we apart laten weten
-            Write.WriteLine("Poort: " + Program.myPort);
 
             // Start het reader-loopje
             new Thread(ReaderThread).Start();
         }
 
-        public Connection(StreamReader read, StreamWriter write)
+        public Connection(ushort port, StreamReader read, StreamWriter write)
         {
+            clientport = port;
             Read = read; Write = write;
 
             // Start het reader-loopje
@@ -46,24 +43,21 @@ namespace netchangenew
                 while (true)
                 {
                     string s = Read.ReadLine();
-                    if (s.StartsWith("Update"))
-                    {
-
-                    }
-                    else if (s.StartsWith("MyDist"))
+                    if (s.StartsWith("MyDist"))
                     {
                         string[] ssplit = s.Split(' ');
-                        ushort destPort = ushort.Parse(ssplit[2]);
-                        Program.n_distanceTable[clientport][destPort] = ushort.Parse(ssplit[1]);
-                        Program.Recompute(destPort);
+                        Program.AcceptUpdate(clientport, ushort.Parse(ssplit[1]), ushort.Parse(ssplit[2]));
                     }
                     else
                     {
-                        Console.WriteLine(Read.ReadLine());
+                        Console.WriteLine(s);
                     }
                 }
             }
-            catch { } // Verbinding is kennelijk verbroken
+            catch
+            {
+                Console.WriteLine("Woah shit broke");
+            }
         }
     }
 }
