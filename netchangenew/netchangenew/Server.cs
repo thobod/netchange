@@ -34,7 +34,13 @@ namespace netchangenew
                 Console.WriteLine("Client maakt verbinding: " + zijnPoort);
 
                 // Zet de nieuwe verbinding in de verbindingslijst
-                Program.AcceptConnection(zijnPoort, clientIn, clientOut);
+                // Zet de nieuwe verbinding in de verbindingslijst
+                if (!Program.Neighbours.ContainsKey(zijnPoort))
+                {
+                    Program.addIncoming(zijnPoort);
+                    Program.AcceptConnection(zijnPoort, clientIn, clientOut);
+                }
+
             }
         }
     }

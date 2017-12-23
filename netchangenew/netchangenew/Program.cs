@@ -89,6 +89,12 @@ namespace netchangenew
             }
         }
 
+        public static void addIncoming(ushort port)
+        {
+            if(!routingTable.ContainsKey(port))
+            routingTable.Add(port, new Tuple<ushort, ushort>(1, port));
+        }
+
         public static void CreateConnection(ushort port)
         {
             if (!LockObjects.ContainsKey(port)) LockObjects.Add(port, new object());
