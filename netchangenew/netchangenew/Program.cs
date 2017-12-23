@@ -12,7 +12,7 @@ namespace netchangenew
         static public ushort myPort;
         static public Dictionary<ushort, Connection> Neighbours;
         static readonly public Dictionary<int, object> LockObjects = new Dictionary<int, object>(); //deze moet nog aangemaakt worden maar is readonly
-        static public Dictionary<ushort, Tuple<ushort, ushort>> routingTable; //Routing table, key being the destination port, value being a tuple of <distance, Neighbour closest to destination port>
+        static public Dictionary<ushort, Tuple<ushort, ushort>> routingTable = routingTable = new Dictionary<ushort, Tuple<ushort, ushort>>(); //Routing table, key being the destination port, value being a tuple of <distance, Neighbour closest to destination port>
         static public Dictionary<ushort, Dictionary<ushort, ushort>> n_distanceTable = new Dictionary<ushort, Dictionary<ushort, ushort>>(); //A table that indexes with a neighbour port, whose value is a dictionary which indexes with the destination port, value being estimated distance
 
         static void Main(string[] args)
@@ -88,13 +88,20 @@ namespace netchangenew
         }
         public static void initTable(ushort[] ports) //sets all the direct connections as fastest connection in routingtable.
         {
-            routingTable = new Dictionary<ushort, Tuple<ushort, ushort>>();
-            routingTable.Add(myPort, new Tuple<ushort, ushort>(0, myPort) );
+            if (!LockObjects.ContainsKey(myPort)) LockObjects.Add(myPort, new object());
+            lock (LockObjects[myPort])
+            {
+                routingTable.Add(myPort, new Tuple<ushort, ushort>(0, myPort));
+            }
             for (int i = 0; i < ports.Length; i++)
             {
                 if (myPort > ports[i]) continue;
                 //Add port to routing table
-                routingTable.Add(ports[i], new Tuple<ushort,ushort>(1, ports[i]));
+                if (!LockObjects.ContainsKey(ports[i])) LockObjects.Add(ports[i], new object());
+                lock (LockObjects[ports[i]])
+                {
+                    routingTable.Add(ports[i], new Tuple<ushort, ushort>(1, ports[i]));
+                }
             }
         }
 
@@ -290,6 +297,11 @@ namespace netchangenew
                     Console.WriteLine("Bericht voor " + targetPort + " wordt doorgestuurd naar " + routingTable[targetPort].Item2);
                 }
             }
+        }
+
+        private static void AddToRoutingTable()
+        {
+
         }
 
 
