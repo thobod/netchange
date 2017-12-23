@@ -61,7 +61,7 @@ namespace netchangenew
                         Console.WriteLine("Poort " + port + " is niet bekend");
                     else
                     {
-                        SendMessage(routingTable[port].Item2, "Message " + myPort + " " + delen[2]);
+                        SendMessage(routingTable[port].Item2, "Message " + port + " " + delen[2]);
                     }
 
                 }
@@ -265,7 +265,7 @@ namespace netchangenew
 
             ushort targetPort = ushort.Parse(splitstring[1]);
 
-            if (targetPort == myPort) Console.WriteLine(realMessage);
+            if (targetPort == myPort) Console.WriteLine(string.Join("",realMessage));
             else
             {
                 if (!routingTable.ContainsKey(targetPort)) Console.WriteLine("Poort " + targetPort + " is niet bekend");
