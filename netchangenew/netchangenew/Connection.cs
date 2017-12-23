@@ -45,21 +45,10 @@ namespace netchangenew
                         string[] ssplit = s.Split(' ');
                         Program.AcceptUpdate(ushort.Parse(ssplit[1]), ushort.Parse(ssplit[2]), ushort.Parse(ssplit[3]));
                     }
-                    else if (s.StartsWith("Forward"))
+                    else if (s.StartsWith("Message"))
                     {
-<<<<<<< HEAD
                         Console.WriteLine("Handel inkomend bericht af");
                         Program.HandleMessage(s);
-=======
-                        string[] splitstring = s.Split(' ');
-                        string[] message = new string[splitstring.Length - 2];
-                        for (int i = 2; i < splitstring.Length; i++)
-                        {
-                            message[i - 2] = splitstring[i];
-                        }
-
-                        Program.forwardMessage(ushort.Parse(splitstring[1]), string.Join("",message));
->>>>>>> parent of c02c002... Changed message handling
                         //Console.WriteLine("ik ben nu hier");
                     }
                     else
