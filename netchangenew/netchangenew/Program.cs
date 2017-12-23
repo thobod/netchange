@@ -60,7 +60,7 @@ namespace netchangenew
                         Console.WriteLine("Poort " + port + " is niet bekend");
                     else
                     {
-                        forwardMessage(port, myPort + ": " + delen[2]);
+                        SendMessage(routingTable[port].Item2, "Message " + myPort + " " + delen[2]);
                     }
 
                 }
@@ -235,17 +235,30 @@ namespace netchangenew
         {
             Neighbours[port].Write.WriteLine(message);
         }
-        public static void forwardMessage(ushort destPort, string message)
+
+        public static void HandleMessage(string message)
         {
-            if (Neighbours.ContainsKey(destPort))
-                Neighbours[destPort].Write.WriteLine(message);
-            else
+            string[] splitstring = message.Split(' ');
+            string[] realMessage = new string[splitstring.Length - 2];
+            for (int i = 2; i < splitstring.Length; i++)
             {
-                ushort nextport = routingTable[destPort].Item2;
-                Neighbours[nextport].Write.WriteLine("Forward "+ destPort + " "+ message);
+                realMessage[i - 2] = splitstring[i];
             }
 
+            ushort targetPort = ushort.Parse(splitstring[1]);
+
+            if (targetPort == myPort) Console.WriteLine(realMessage);
+            else
+            {
+                if (!routingTable.ContainsKey(targetPort)) Console.WriteLine("Poort " + targetPort + " is niet bekend");
+                else
+                {
+                    SendMessage(routingTable[targetPort].Item2, message);
+                    Console.WriteLine("Bericht voor " + targetPort + " doorgestuurd naar " + routingTable[targetPort].Item2);
+                }
+            }
         }
+
 
         public static void printTable()
         {
