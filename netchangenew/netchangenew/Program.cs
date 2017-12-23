@@ -127,12 +127,12 @@ namespace netchangenew
                 //Update your connected server about your routing table
                 foreach (KeyValuePair<ushort, Tuple<ushort, ushort>> distances in routingTable)
                 {
-                    SendMessage(port, "MyDist " + distances.Key + " " + distances.Value.Item1);
+                    SendMessage(port, "MyDist " + myPort + " " + distances.Key + " " + distances.Value.Item1);
                 }
 
                 foreach (KeyValuePair<ushort, Connection> neighbour in Neighbours)
                 {
-                    SendMessage(neighbour.Key, "MyDist " + port + " 1");
+                    SendMessage(neighbour.Key, "MyDist " + myPort + " " + port + " 1");
                 }
             }
         }
@@ -148,7 +148,7 @@ namespace netchangenew
                 //Update your connected client about your routing table
                 foreach (KeyValuePair<ushort, Tuple<ushort, ushort>> distances in routingTable)
                 {
-                    SendMessage(port, "MyDist " + distances.Key + " " + distances.Value.Item1);
+                    SendMessage(port, "MyDist " + myPort + " " + distances.Key + " " + distances.Value.Item1);
                 }
             }
         }
@@ -208,7 +208,7 @@ namespace netchangenew
                 {
                     foreach(KeyValuePair<ushort, Connection> neighbour in Neighbours)
                     {
-                        SendMessage(neighbour.Key, "MyDist " + port + " " + d);
+                        SendMessage(neighbour.Key, "MyDist " + myPort + " " + port + " " + d);
                     }
                 }
             }

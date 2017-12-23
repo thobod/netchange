@@ -13,12 +13,10 @@ namespace netchangenew
     {
         public StreamReader Read;
         public StreamWriter Write;
-        private ushort clientport;
 
         public Connection(ushort port)
         {
             TcpClient client = new TcpClient("localhost", port);
-            clientport = port;
             Read = new StreamReader(client.GetStream());
             Write = new StreamWriter(client.GetStream());
             Write.AutoFlush = true;
@@ -29,7 +27,6 @@ namespace netchangenew
 
         public Connection(ushort port, StreamReader read, StreamWriter write)
         {
-            clientport = port;
             Read = read; Write = write;
 
             // Start het reader-loopje
@@ -46,7 +43,7 @@ namespace netchangenew
                     if (s.StartsWith("MyDist"))
                     {
                         string[] ssplit = s.Split(' ');
-                        Program.AcceptUpdate(clientport, ushort.Parse(ssplit[1]), ushort.Parse(ssplit[2]));
+                        Program.AcceptUpdate(ushort.Parse(ssplit[2]), ushort.Parse(ssplit[2]), ushort.Parse(ssplit[3]));
                     }
                     else if (s.StartsWith("Forward"))
                     {
