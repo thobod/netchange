@@ -92,17 +92,10 @@ namespace netchangenew
             routingTable.Add(myPort, new Tuple<ushort, ushort>(0, myPort) );
             for (int i = 0; i < ports.Length; i++)
             {
+                if (myPort > ports[i]) continue;
                 //Add port to routing table
                 routingTable.Add(ports[i], new Tuple<ushort,ushort>(1, ports[i]));
             }
-        }
-
-
-
-        public static void addIncoming(ushort port)
-        {
-            if(!routingTable.ContainsKey(port))
-            routingTable.Add(port, new Tuple<ushort, ushort>(1, port));
         }
 
         public static void CreateConnection(ushort port)
@@ -164,6 +157,10 @@ namespace netchangenew
                 {
                     SendMessage(port, "MyDist " + myPort + " " + distances.Key + " " + distances.Value.Item1);
                 }
+                foreach (KeyValuePair<ushort, Connection> neighbour in Neighbours)
+                {
+                    SendMessage(neighbour.Key, "MyDist " + myPort + " " + port + " 1");
+                }
             }
         }
 
@@ -218,11 +215,18 @@ namespace netchangenew
                 }
 
                 //Informs each neighbour of their updated distance, if the distance changed
-                if(d != oldD)
+                if(d != oldD && d < 20)
                 {
                     foreach(KeyValuePair<ushort, Connection> neighbour in Neighbours)
                     {
                         SendMessage(neighbour.Key, "MyDist " + myPort + " " + port + " " + d);
+                    }
+                }
+                else if (d != oldD && d > 20)
+                {
+                    foreach (KeyValuePair<ushort, Connection> neighbour in Neighbours)
+                    {
+                        SendMessage(neighbour.Key, "MyDist " + myPort + " " + port + " " + ushort.MaxValue);
                     }
                 }
             }
@@ -235,12 +239,21 @@ namespace netchangenew
             ushort port = 0;
             foreach(KeyValuePair<ushort, Connection> neighbour in Neighbours)
             {
-                ushort tempDist = n_distanceTable[neighbour.Key][destinationPort];
-                if (tempDist < dist)
+                lock (LockObjects[neighbour.Key])
                 {
-                    dist = tempDist;
-                    port = neighbour.Key;
-                } 
+                    Console.WriteLine("looking up shortest path to " + destinationPort + " with n-table");
+                    PrintNDisTable();
+                    if (!n_distanceTable[neighbour.Key].ContainsKey(destinationPort))
+                    {
+                        n_distanceTable[neighbour.Key].Add(destinationPort, (ushort)(dist + 1));
+                    }
+                    ushort tempDist = n_distanceTable[neighbour.Key][destinationPort];
+                    if (tempDist < dist)
+                    {
+                        dist = tempDist;
+                        port = neighbour.Key;
+                    }
+                }
             }
             return new Tuple<ushort, ushort>(dist, port);
         }
@@ -303,7 +316,7 @@ namespace netchangenew
                 ushort[] keyArray2 = n_distanceTable[keyArray1[i]].Keys.ToArray();
                 for(int j = 0; j < n_distanceTable[keyArray1[i]].Count; j++)
                 {
-                    Console.WriteLine(keyArray1[i] + " to " + keyArray2[j] + " is " + n_distanceTable[keyArray1[i]][keyArray2[j]]);
+                    Console.WriteLine(keyArray1[i] + " to " + keyArray2[j] + " is " + n_distanceTable[keyArray1[i]][keyArray2[j]] + " via ");
                 }
             }
         }
