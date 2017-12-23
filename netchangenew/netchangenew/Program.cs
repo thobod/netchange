@@ -17,7 +17,6 @@ namespace netchangenew
         static void Main(string[] args)
         {
             Neighbours = new Dictionary<ushort, Connection>();
-            args = Console.ReadLine().Split(' ');
             myPort = ushort.Parse(args[0]);
             Console.Title = "NetChange" + myPort;
             new Server(myPort);
@@ -33,8 +32,7 @@ namespace netchangenew
             //Instantiates the connections
             for (int i = 0; i < portsToConnect.Length; i++)
             {
-                ushort port = ushort.Parse(args[i]);
-                CreateConnection(port);
+                CreateConnection(portsToConnect[i]);
             }
 
 
@@ -104,6 +102,7 @@ namespace netchangenew
                 try
                 {
                     Neighbours.Add(port, new Connection(port));
+                    Console.WriteLine("Verbonden: " + port);
                     p = false;
                 }
                 catch
