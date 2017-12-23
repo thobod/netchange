@@ -105,6 +105,7 @@ namespace netchangenew
             if (!LockObjects.ContainsKey(port)) LockObjects.Add(port, new object());
             lock (LockObjects[port])
             {
+                if (Neighbours.ContainsKey(port)) return;
                 if (!n_distanceTable.ContainsKey(port)) n_distanceTable.Add(port, new Dictionary<ushort, ushort>());
                 n_distanceTable[port].Add(myPort, 1);
 
@@ -142,7 +143,9 @@ namespace netchangenew
             if (!LockObjects.ContainsKey(port)) LockObjects[port] = new object();
             lock (LockObjects[port])
             {
+                if (Neighbours.ContainsKey(port)) return;
                 Neighbours.Add(port, new Connection(port, clientIN, clientOUT));
+                Console.WriteLine("Client maakt verbinding: " + port);
                 if (!n_distanceTable.ContainsKey(port)) n_distanceTable.Add(port, new Dictionary<ushort, ushort>());
                 n_distanceTable[port].Add(myPort, 1);
                 //Update your connected client about your routing table
@@ -234,6 +237,7 @@ namespace netchangenew
         private static void SendMessage(ushort port, string message)
         {
             Neighbours[port].Write.WriteLine(message);
+            Console.WriteLine("stuur berichtje naar " + port);
         }
 
         public static void HandleMessage(string message)
@@ -254,7 +258,7 @@ namespace netchangenew
                 else
                 {
                     SendMessage(routingTable[targetPort].Item2, message);
-                    Console.WriteLine("Bericht voor " + targetPort + " doorgestuurd naar " + routingTable[targetPort].Item2);
+                    Console.WriteLine("Bericht voor " + targetPort + " wordt doorgestuurd naar " + routingTable[targetPort]);
                 }
             }
         }

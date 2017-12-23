@@ -43,10 +43,11 @@ namespace netchangenew
                     if (s.StartsWith("MyDist"))
                     {
                         string[] ssplit = s.Split(' ');
-                        Program.AcceptUpdate(ushort.Parse(ssplit[2]), ushort.Parse(ssplit[2]), ushort.Parse(ssplit[3]));
+                        Program.AcceptUpdate(ushort.Parse(ssplit[1]), ushort.Parse(ssplit[2]), ushort.Parse(ssplit[3]));
                     }
                     else if (s.StartsWith("Message"))
                     {
+                        Console.WriteLine("Handel inkomend bericht af");
                         Program.HandleMessage(s);
                         //Console.WriteLine("ik ben nu hier");
                     }
