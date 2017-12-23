@@ -154,6 +154,8 @@ namespace netchangenew
                 if (Neighbours.ContainsKey(port)) return;
                 Neighbours.Add(port, new Connection(port, clientIN, clientOUT));
                 Console.WriteLine("Client maakt verbinding: " + port);
+                if (!routingTable.ContainsKey(port)) routingTable.Add(port, new Tuple<ushort, ushort>(1, port));
+                routingTable[port] = new Tuple<ushort, ushort>(1, port);
                 if (!n_distanceTable.ContainsKey(port)) n_distanceTable.Add(port, new Dictionary<ushort, ushort>());
                 n_distanceTable[port].Add(myPort, 1);
                 n_distanceTable[port].Add(port, 0);

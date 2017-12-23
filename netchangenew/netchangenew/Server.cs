@@ -37,7 +37,6 @@ namespace netchangenew
                 // Zet de nieuwe verbinding in de verbindingslijst
                 if (!Program.Neighbours.ContainsKey(zijnPoort))
                 {
-                    Program.addIncoming(zijnPoort);
                     Program.AcceptConnection(zijnPoort, clientIn, clientOut);
                 }
 
